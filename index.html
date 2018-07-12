@@ -32,6 +32,8 @@
 
 	<div id="pastResults"></div>
 
+	<div id="example"></div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/5.2.0/firebase.js"></script>
 <script>
@@ -83,6 +85,21 @@
 
 
 // ---------------------------------------------------------------
+	
+	var clearDiv = 0;
+	var pastResultsArray = [];
+
+	// keeps track of the clearDiv by storing the value in Firebase's Database
+	// the purpose of this is to make sure the div doesn't get too big.
+	// so when clearDiv variable goes past 10, we will clear the div.
+	database.ref("/pastResultsCounter").on("value", function(snapshot) {
+		
+		clearDiv = snapshot.val().resultContainer;
+
+	});
+
+	
+
 
 	// when user clicks button run the game
 	$(document).on('click','button',function() {
@@ -98,8 +115,9 @@
 
 			$('#pastResults').text('');
 			clearDiv = 0;
-
+			pastResultsArray = [];
 		}
+	});
 
 	// this function flips coin and randomizes which will be displayed depending 
 	// on the randomization.
@@ -112,13 +130,23 @@
 			
 			$('.images').attr('src', 'http://random-ize.com/coin-flip/us-quarter/us-quarter-front.jpg');
 			$('#pastResults').append('Heads');
+			pastResultsArray.push('Heads');
 			clearDiv++;
+			database.ref("/pastResultsCounter").set({
+        		resultContainer: clearDiv,
+        		pastResultsArray
+     		});
 		
 		} else if (random == 1) {
 			
 			$('.images').attr('src', 'http://random-ize.com/coin-flip/us-quarter/us-quarter-back.jpg');
 			$('#pastResults').append('Tails');
+			pastResultsArray.push('Tails');
 			clearDiv++;
+			database.ref("/pastResultsCounter").set({
+        		resultContainer: clearDiv,
+        		pastResultsArray
+     		});
 		
 		}
 	}
@@ -143,8 +171,6 @@
 		// 	tailsChosen++
 		// 	$('#chosenTailsNumber').text(tailsChosen);
 		// }
-
-	})
 </script>
 </body>
 </html>
