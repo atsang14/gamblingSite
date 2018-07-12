@@ -5,14 +5,11 @@
 </head>
 <body>
 
-	<div id="pickButton">
-		<button class="Heads" id="headsButton" type='0'>heads</button>
-		<button class="Tails" id="tailsButton" type="1">tails</button>
-	</div>
-	
-<!-- <div class="userGuess">
-		<p id="userGuess">You guessed: <b><span id="guessHere"></span></b></p>
+<!-- 	<div id="pickButton">
+		<button class="flip">FlipCoin!</button>
 	</div> -->
+	
+	<div id="nextFlipTimer"></div>
 
 	<div id="image"><img class="images" src=""></div>
 
@@ -22,8 +19,6 @@
 	<p>Online: <span id="online"></span></p>
 
 	<div id="pastResults"></div>
-
-	<div id="example"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/5.2.0/firebase.js"></script>
@@ -81,6 +76,7 @@
 	var clearDiv 		 = 0;
 	var pastResultsArray = [];
 	var currentUrl		 = '';
+	var flipTimer;
 
 	// keeps track of the clearDiv by storing the value in Firebase's Database
 	// the purpose of this is to make sure the div doesn't get too big.
@@ -104,24 +100,6 @@
 
 		$('.images').attr('src', snapshot.val().imgUrl);
 
-	});
-
-	// when user clicks button run the game
-	$(document).on('click','button',function() {
-
-		// evertime userclicks, make a new random
-		// get user choice 
-		var random = Math.floor(Math.random() * 2);
-		
-		flipCoin();
-
-		// clearDiv is used to clear pastResults div when it get's too full
-		if(clearDiv > 10) {
-
-			$('#pastResults').text('');
-			clearDiv = 0;
-			pastResultsArray = [];
-		}
 	});
 
 	// this function flips coin and randomizes which will be displayed depending 
@@ -157,6 +135,29 @@
 		}
 	}
 
+	timer()
+	function timer() {
+		var timerStart = 5;
+		flipTimer = setInterval(function() {
+			if(timerStart >= 0){
+				$('#nextFlipTimer').text(timerStart--);
+			} else {
+				flipCoin();
+				if(clearDiv > 10) {
+
+					$('#pastResults').text('');
+					clearDiv = 0;
+					pastResultsArray = [];
+
+				}
+				clearInterval(flipTimer);
+				timer();
+			}
+		}, 1000);
+	}
+
+
+
 		
 		// $('#guessHere').text($(this).attr('class'));
 
@@ -177,6 +178,24 @@
 		// 	tailsChosen++
 		// 	$('#chosenTailsNumber').text(tailsChosen);
 		// }
+
+			// when user clicks button run the game
+	// $(document).on('click','button',function() {
+
+	// 	// evertime userclicks, make a new random
+	// 	// get user choice 
+	// 	var random = Math.floor(Math.random() * 2);
+		
+	// 	flipCoin();
+
+	// 	// clearDiv is used to clear pastResults div when it get's too full
+	// 	if(clearDiv > 10) {
+
+	// 		$('#pastResults').text('');
+	// 		clearDiv = 0;
+	// 		pastResultsArray = [];
+	// 	}
+	// });
 </script>
 </body>
 </html>
