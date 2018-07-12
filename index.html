@@ -18,15 +18,6 @@
 
 	<div id="status"></div>
 
-	<!-- change this div to show the history of wins and losses -->
-	<div class="chosen">
-		<p id="chosenHeads">Heads Chosen: </p>
-		<span id="chosenHeadsNumber"></span>
-
-		<p id="chosenTails">Tails Chosen: </p>
-		<span id="chosenTailsNumber"></span>
-	</div>
-
 	<!-- how many users online -->
 	<p>Online: <span id="online"></span></p>
 
@@ -72,6 +63,7 @@
         // Remove user from the connection list when they disconnect.
         con.onDisconnect().remove();
       }
+
     });
 
 
@@ -86,8 +78,9 @@
 
 // ---------------------------------------------------------------
 	
-	var clearDiv = 0;
+	var clearDiv 		 = 0;
 	var pastResultsArray = [];
+	var currentUrl		 = '';
 
 	// keeps track of the clearDiv by storing the value in Firebase's Database
 	// the purpose of this is to make sure the div doesn't get too big.
@@ -98,8 +91,20 @@
 
 	});
 
-	
+	database.ref("/pastResultsCounter").on("value", function(snapshot) {
 
+		pastResultsArray = snapshot.val().pastResultsArray;
+		
+		$('#pastResults').text('');
+		
+		for (var i = 0; i < pastResultsArray.length; i++) {
+			var p = $('<p>').text(pastResultsArray[i]);
+			$('#pastResults').append(p);
+		}
+
+		$('.images').attr('src', snapshot.val().imgUrl);
+
+	});
 
 	// when user clicks button run the game
 	$(document).on('click','button',function() {
@@ -111,7 +116,7 @@
 		flipCoin();
 
 		// clearDiv is used to clear pastResults div when it get's too full
-		if(clearDiv >= 10) {
+		if(clearDiv > 10) {
 
 			$('#pastResults').text('');
 			clearDiv = 0;
@@ -134,7 +139,8 @@
 			clearDiv++;
 			database.ref("/pastResultsCounter").set({
         		resultContainer: clearDiv,
-        		pastResultsArray
+        		pastResultsArray,
+        		imgUrl: 'http://random-ize.com/coin-flip/us-quarter/us-quarter-front.jpg'
      		});
 		
 		} else if (random == 1) {
@@ -145,9 +151,9 @@
 			clearDiv++;
 			database.ref("/pastResultsCounter").set({
         		resultContainer: clearDiv,
-        		pastResultsArray
+        		pastResultsArray,
+        		imgUrl: 'http://random-ize.com/coin-flip/us-quarter/us-quarter-back.jpg'
      		});
-		
 		}
 	}
 
