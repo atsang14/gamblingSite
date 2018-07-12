@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+
+	<div id="pickButton">
+		<button class="Heads" id="headsButton" type='0'>heads</button>
+		<button class="Tails" id="tailsButton" type="1">tails</button>
+	</div>
+	
+<!-- <div class="userGuess">
+		<p id="userGuess">You guessed: <b><span id="guessHere"></span></b></p>
+	</div> -->
+
+	<div id="image"><img class="images" src=""></div>
+
+	<div id="status"></div>
+
+	<!-- change this div to show the history of wins and losses -->
+	<div class="chosen">
+		<p id="chosenHeads">Heads Chosen: </p>
+		<span id="chosenHeadsNumber"></span>
+
+		<p id="chosenTails">Tails Chosen: </p>
+		<span id="chosenTailsNumber"></span>
+	</div>
+
+	<!-- how many users online -->
+	<p>Online: <span id="online"></span></p>
+
+	<div id="pastResults"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.2.0/firebase.js"></script>
+<script>
+	// Initialize Firebase
+	var config = {
+	    apiKey: "AIzaSyDAfG82UkYHhmtLqkaOacEqY9jVtit_mog",
+	    authDomain: "flip-coin-game.firebaseapp.com",
+	    databaseURL: "https://flip-coin-game.firebaseio.com",
+	    projectId: "flip-coin-game",
+	    storageBucket: "",
+	    messagingSenderId: "647249346115"
+	};
+	firebase.initializeApp(config);
+
+	// Create a variable to reference the database.
+	var database = firebase.database();
+
+	// -------------------------------------------------------------- (CRITICAL - BLOCK) --------------------------- //
+    // connectionsRef references a specific location in our database.
+    // All of our connections will be stored in this directory.
+	var connectionsRef = database.ref("/connections");
+
+	// '.info/connected' is a special location provided by Firebase that is updated every time
+    // the client's connection state changes.
+    // '.info/connected' is a boolean value, true if the client is connected and false if they are not.
+	var connectedRef = database.ref(".info/connected");
+
+	connectedRef.on("value", function(snap) {
+      
+      // If they are connected..
+      if (snap.val()) {
+
+        // Add user to the connections list.
+        var con = connectionsRef.push(true);
+
+        // Remove user from the connection list when they disconnect.
+        con.onDisconnect().remove();
+      }
+    });
+
+
+    // When first loaded or when the connections list changes...
+    connectionsRef.on("value", function(snap) {
+
+      // Display the viewer count in the html.
+      // The number of online users is the number of children in the connections list.
+      $("#online").text(snap.numChildren());
+    });
+
+
+// ---------------------------------------------------------------
+
+	// when user clicks button run the game
+	$(document).on('click','button',function() {
+
+		// evertime userclicks, make a new random
+		// get user choice 
+		var random = Math.floor(Math.random() * 2);
+		
+		flipCoin();
+
+		// clearDiv is used to clear pastResults div when it get's too full
+		if(clearDiv >= 10) {
+
+			$('#pastResults').text('');
+			clearDiv = 0;
+
+		}
+
+	// this function flips coin and randomizes which will be displayed depending 
+	// on the randomization.
+
+	function flipCoin() {
+
+		var random = Math.floor(Math.random() * 2);
+		
+		if (random == 0) {
+			
+			$('.images').attr('src', 'http://random-ize.com/coin-flip/us-quarter/us-quarter-front.jpg');
+			$('#pastResults').append('Heads');
+			clearDiv++;
+		
+		} else if (random == 1) {
+			
+			$('.images').attr('src', 'http://random-ize.com/coin-flip/us-quarter/us-quarter-back.jpg');
+			$('#pastResults').append('Tails');
+			clearDiv++;
+		
+		}
+	}
+
+		
+		// $('#guessHere').text($(this).attr('class'));
+
+		// if(userChoice == random){
+		// 	wins++
+		// 	$('#wonNumber').text(wins);
+		// 	$('#status').text('Winner!');
+		// } else{
+		// 	losses++
+		// 	$('#lossNumber').text(losses);
+		// 	$('#status').text('Loser!');
+		// }
+		
+		// if(userChoice == 0){
+		// 	headsChosen++
+		// 	$('#chosenHeadsNumber').text(headsChosen);
+		// } else if (userChoice == 1){
+		// 	tailsChosen++
+		// 	$('#chosenTailsNumber').text(tailsChosen);
+		// }
+
+	})
+</script>
+</body>
+</html>
