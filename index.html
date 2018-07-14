@@ -5,9 +5,9 @@
 </head>
 <body>
 
-<!-- 	<div id="pickButton">
+	<div id="pickButton">
 		<button class="flip">FlipCoin!</button>
-	</div> -->
+	</div>
 	
 	<div id="nextFlipTimer"></div>
 
@@ -24,14 +24,16 @@
 <script src="https://www.gstatic.com/firebasejs/5.2.0/firebase.js"></script>
 <script>
 	// Initialize Firebase
+	var timer = 0;
 	var config = {
-	    apiKey: "AIzaSyDAfG82UkYHhmtLqkaOacEqY9jVtit_mog",
-	    authDomain: "flip-coin-game.firebaseapp.com",
-	    databaseURL: "https://flip-coin-game.firebaseio.com",
-	    projectId: "flip-coin-game",
+	    apiKey: "AIzaSyAlAKpkcrDEc5hQ_53yAuOvZ1JE64Isuu4",
+	    authDomain: "coin-flip-9da4e.firebaseapp.com",
+	    databaseURL: "https://coin-flip-9da4e.firebaseio.com",
+	    projectId: "coin-flip-9da4e",
 	    storageBucket: "",
-	    messagingSenderId: "647249346115"
+	    messagingSenderId: "839637676952"
 	};
+
 	firebase.initializeApp(config);
 
 	// Create a variable to reference the database.
@@ -70,12 +72,12 @@
       $("#online").text(snap.numChildren());
     });
 
-
 // ---------------------------------------------------------------
-	
+	var baseTime 		 = "1531389600"; // subtract this by the Date.now() and the % to get remainder.
 	var clearDiv 		 = 0;
 	var pastResultsArray = [];
 	var currentUrl		 = '';
+	var timerStart		 = 5;	// this variable will dictate how long the timer will last 
 	var flipTimer;
 
 	// keeps track of the clearDiv by storing the value in Firebase's Database
@@ -102,19 +104,26 @@
 
 	});
 
+	database.ref('/globalTimer').on('value', function(snapshot) {
+
+		globalTimer = snapshot
+	})
+
 	// this function flips coin and randomizes which will be displayed depending 
 	// on the randomization.
 
 	function flipCoin() {
 
 		var random = Math.floor(Math.random() * 2);
-		
+
 		if (random == 0) {
 			
 			$('.images').attr('src', 'http://random-ize.com/coin-flip/us-quarter/us-quarter-front.jpg');
 			$('#pastResults').append('Heads');
+			
 			pastResultsArray.push('Heads');
 			clearDiv++;
+			
 			database.ref("/pastResultsCounter").set({
         		resultContainer: clearDiv,
         		pastResultsArray,
@@ -127,6 +136,7 @@
 			$('#pastResults').append('Tails');
 			pastResultsArray.push('Tails');
 			clearDiv++;
+
 			database.ref("/pastResultsCounter").set({
         		resultContainer: clearDiv,
         		pastResultsArray,
@@ -135,26 +145,67 @@
 		}
 	}
 
-	timer()
-	function timer() {
-		var timerStart = 5;
-		flipTimer = setInterval(function() {
-			if(timerStart >= 0){
-				$('#nextFlipTimer').text(timerStart--);
-			} else {
-				flipCoin();
-				if(clearDiv > 10) {
+			// when user clicks button run the game
+	$(document).on('click','button',function() {
 
-					$('#pastResults').text('');
-					clearDiv = 0;
-					pastResultsArray = [];
+		// evertime userclicks, make a new random
+		// get user choice 
+		var random = Math.floor(Math.random() * 2);
 
-				}
-				clearInterval(flipTimer);
-				timer();
-			}
-		}, 1000);
-	}
+		// clearDiv is used to clear pastResults div when it get's too full
+		if(clearDiv > 10) {
+
+			$('#pastResults').text('');
+			clearDiv = 0;
+			pastResultsArray = [];
+
+		}
+		
+		flipCoin();
+	});
+
+
+
+
+
+
+
+
+
+
+
+
+	// This function also runs on a 5 second timer.
+	// Every 5 seconds, the function will call itself to make the game repeat.
+	// function timer() {
+		
+	// 	flipTimer = setInterval(function() {
+
+	// 		if(timerStart >= 0){
+
+	// 			$('#nextFlipTimer').text(timerStart--);
+
+	// 		} else {
+				
+	// 			flipCoin();
+				
+	// 			if(clearDiv > 10) {
+
+	// 				$('#pastResults').text('');
+	// 				clearDiv = 0;
+	// 				pastResultsArray = [];
+
+	// 			}	
+
+	// 			timerStart = 5;
+				
+	// 			clearInterval(flipTimer);
+
+	// 			timer();
+
+	// 		}
+	// 	}, 1000);
+	// }
 
 
 
@@ -179,23 +230,6 @@
 		// 	$('#chosenTailsNumber').text(tailsChosen);
 		// }
 
-			// when user clicks button run the game
-	// $(document).on('click','button',function() {
-
-	// 	// evertime userclicks, make a new random
-	// 	// get user choice 
-	// 	var random = Math.floor(Math.random() * 2);
-		
-	// 	flipCoin();
-
-	// 	// clearDiv is used to clear pastResults div when it get's too full
-	// 	if(clearDiv > 10) {
-
-	// 		$('#pastResults').text('');
-	// 		clearDiv = 0;
-	// 		pastResultsArray = [];
-	// 	}
-	// });
 </script>
 </body>
 </html>
