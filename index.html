@@ -13,7 +13,7 @@
 		<button id="register">Register</button>
 	</div>
 
-	<div class="form-pages">
+	<div class="form-pages"> 
 			
 			<!-- form div if user Does not have an account -->
 		<div class="userId">
@@ -45,12 +45,15 @@
 	
 	<!-- coin flip game -->
 <div class="coin-flip">	
+		
 		<!-- button to flip-coin, this will be edited into a timer -->
 	<div id="pickButton">
 		<button class="flip">FlipCoin!</button>
 	</div>
-		<!-- coin flip  -->
+	
+	<button class="logOut">Log Out</button>
 
+		<!-- coin flip  -->
 	<div id="nextFlipTimer"></div>
 
 	<div id="image"><img class="images" src=""></div>
@@ -229,12 +232,17 @@
 		}
 	}
 
+	$('.logOut').on('click', function() {
+
+		$('.login-page').show();
+		$('.coin-flip').hide();
+
+	})
+
 // ---------------------Login Info----------------------------------------
 
 	$('.userId').hide();
 	$('.userLogin').hide();
-
-
 
 	$('#register').on('click', function() {
 
@@ -255,6 +263,7 @@
 		var userName = '';
 		var	email	 = '';
 		var password = '';
+		var timeStamp 	= new Date().toISOString();
 
 		var errorUserName = 'User Name has already been take. Please choose another user name.';
 
@@ -292,7 +301,6 @@
  				$('#message-display').append(errorUserName);
  				return;
  			}
-
  		}
 
 		var userInfo     = {
@@ -301,7 +309,8 @@
 			user_Email: email,
 			user_Password: password,
 			status: 'Logged In',
-			wallet: 100
+			wallet: 100,
+			time_Account_Created: timeStamp
 
 		}		
 
@@ -370,7 +379,10 @@
 				// Show user name and wallet of user
 				loggedInUser 	   = userName;
 				loggedInUserWallet = 	users[keys].wallet;
-
+				
+				$('#loginUserName').val('');
+				$('#loginPassword').val('');
+				
 				$('.login-page').hide();
       			$('.coin-flip').show();
 
@@ -381,6 +393,7 @@
 
 			} 
 		}
+		
 
 		$('#message-display').append(errorMsg);
 
@@ -389,11 +402,14 @@
 	// this back button brings the user to the option menu
 	// where they can chose to register or log in.
 	$('#back').on('click', function() {
+
 		$('.form-pages').hide();
 		$('.beginning-page').show();
+
 	}); 
 
-
+	
+	
 	// This function also runs on a 5 second timer.
 	// Every 5 seconds, the function will call itself to make the game repeat.
 	// function timer() {
