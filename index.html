@@ -151,7 +151,10 @@
 		$('#pastResults').text('');
 		
 		for (var i = 0; i < 10; i++) {
-			var p = $('<p>').text(pastResultsArray[pastResultsArray.length - i]);
+
+			var span = $('<span>').text(pastResultsArray[pastResultsArray.length - (i+1)].timeStamp);
+			var p = $('<p>').append(pastResultsArray[pastResultsArray.length - (i+1)].timeResult);
+			p.append('\t').append(span);
 			$('#pastResults').prepend(p);
 		}
 
@@ -160,22 +163,40 @@
 	});
 
 
+	// when user clicks button run the game
+	$(document).on('click','.flip',function() {
+
+		flipCoin();
+
+	});
+
+
 	// this function flips coin and randomizes which will be displayed depending 
 	// on the randomization.
-
 	function flipCoin() {
-	
-		var random = Math.floor(Math.random() * 2);
+
+		var timeStamp 	= new Date().toISOString();
+		var random 		= Math.floor(Math.random() * 2);
+		
 		$('#pastResults').text('');
-	
+	 	
 		if (random == 0) {
+			
+			var result = {
+				timeStamp: timeStamp,
+				timeResult: 'Heads'
+			}
 			
 			$('.images').attr('src', 'http://random-ize.com/coin-flip/us-quarter/us-quarter-front.jpg');
 
-			pastResultsArray.push('Heads');
-
+			pastResultsArray.push(result);
+			
 			for (var i = 0; i < 10; i++ ){
-				$('#pastResults').append(pastResultsArray[pastResultsArray.length-i]);
+				var span = $('<span>').text(timeStamp);
+				var p = $('<p>').append(pastResultsArray[pastResultsArray.length - (i+1)].timeResult);
+				p.append('\t').append(span);
+				$('#pastResults').append(p);
+			
 			}
 			
 			database.ref("/pastResultsCounter").set({
@@ -185,12 +206,20 @@
 		
 		} else if (random == 1) {
 			
+			var result = {
+				timeStamp: timeStamp,
+				timeResult: 'Tails'
+			}
+
 			$('.images').attr('src', 'http://random-ize.com/coin-flip/us-quarter/us-quarter-back.jpg');
 			
-			pastResultsArray.push('Tails');
+			pastResultsArray.push(result);
 
 			for (var i = 0; i < 10; i++ ){
-				$('#pastResults').append(pastResultsArray[pastResultsArray.length-i]);
+				var span = $('<span>').text(timeStamp);
+				var p = $('<p>').append(pastResultsArray[pastResultsArray.length - (i+1)].timeResult);
+				p.append('\t').append(span);
+				$('#pastResults').append(p);
 			}
 
 			database.ref("/pastResultsCounter").set({
@@ -199,13 +228,6 @@
      		});
 		}
 	}
-
-			// when user clicks button run the game
-	$(document).on('click','.flip',function() {
-
-		flipCoin();
-
-	});
 
 // ---------------------Login Info----------------------------------------
 
