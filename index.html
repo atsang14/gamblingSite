@@ -4,27 +4,78 @@
 	<title></title>
 </head>
 <body>
+	
+	<!-- login  -->
+<div class="login-page">
+	
+	<div class="beginning-page">
+		<button id="signIn">Sign-In</button>
+		<button id="register">Register</button>
+	</div>
 
+	<div class="form-pages">
+			
+			<!-- form div if user Does not have an account -->
+		<div class="userId">
+			<h1>Create User Login</h1>
+			<form class="userId">
+				<h3>UserName: <input id="userName"></h3>
+		 		<h3>Email: <input id="email"></h3>
+				<h3>Password: <input id="password"></h3>	
+				<button id="submit">Submit</button>
+				<button id="back">Back</button>
+			</form>
+		</div>
+
+			<!-- Login if user does have an account -->
+		<div class="userLogin">
+			<h1>Enter Your Login Information</h1>
+			<form>
+				<h3>UserName: <input id="loginUserName"></h3>
+				<h3>Password: <input id="loginPassword"></h3>
+				<button id="submitLogin">Submit</button>
+				<button id="back">Back</button>
+			</form>
+		</div>
+		
+		<h2 id="message-display"></h2>
+	</div>
+
+</div>
+	
+	<!-- coin flip game -->
+<div class="coin-flip">	
+		<!-- button to flip-coin, this will be edited into a timer -->
 	<div id="pickButton">
 		<button class="flip">FlipCoin!</button>
 	</div>
-	
+		<!-- coin flip  -->
+
 	<div id="nextFlipTimer"></div>
 
 	<div id="image"><img class="images" src=""></div>
 
 	<div id="status"></div>
 
-	<!-- how many users online -->
+		<!-- Shows Who user is currently logged in as -->
+	<div class="loggedInAs">Logged In As: <span id="currentUser"></span></div>
+	
+	<div class="wallet">Wallet: <span id="currentWallet"></span></div>	
+		<!-- how many users online -->
 	<p>Online: <span id="online"></span></p>
-
+		
+		<!-- Past History Location -->
 	<div id="pastResults"></div>
+
+	
+</div>
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/5.2.0/firebase.js"></script>
 <script>
 	// Initialize Firebase
-	var timer = 0;
+	// var timer = 0;
 	var config = {
 	    apiKey: "AIzaSyD_qURuCUdBESLqgWn4antWWaeo9ehikp8",
 	    authDomain: "project-1-814ab.firebaseapp.com",
@@ -72,24 +123,32 @@
       $("#online").text(snap.numChildren());
     });
 
-// ---------------------------------------------------------------
-	var baseTime 		 = "1531389600"; // subtract this by the Date.now() and the % to get remainder.
-	var clearDiv 		 = 0;
-	var pastResultsArray = [];
-	var currentUrl		 = '';
-	var timerStart		 = 5;	// this variable will dictate how long the timer will last 
-	var flipTimer;
+// -----------------------Flip Coin--------------------------------------
+	var baseTime 		   = "1531389600"; // subtract this by the Date.now() and the % to get remainder.
+	var clearDiv 		   = 0;
+	var pastResultsArray   = [];
+	var currentUrl		   = '';
+	var users 			   = [];
+	var loggedInUser	   = ''; // this variable holds the userName of the Currently logged in user.
+	var loggedInUserWallet = 0;
+	// var timerStart		 = 5;	// this variable will dictate how long the timer will last 
+	// var flipTimer;
+
+	$('.coin-flip').hide();
 
 	// keeps track of the clearDiv by storing the value in Firebase's Database
 	// the purpose of this is to make sure the div doesn't get too big.
 	// so when clearDiv variable goes past 10, we will clear the div.
+	
+	database.ref().on('value', function(snapshot) {
+ 		
+ 		users = snapshot.val().users;
+
+ 	});
+
 	database.ref("/pastResultsCounter").on("value", function(snapshot) {
-		
+
 		clearDiv = snapshot.val().resultContainer;
-
-	});
-
-	database.ref("/pastResultsCounter").on("value", function(snapshot) {
 
 		pastResultsArray = snapshot.val().pastResultsArray;
 		
@@ -104,10 +163,6 @@
 
 	});
 
-	database.ref('/globalTimer').on('value', function(snapshot) {
-
-		globalTimer = snapshot
-	})
 
 	// this function flips coin and randomizes which will be displayed depending 
 	// on the randomization.
@@ -146,7 +201,7 @@
 	}
 
 			// when user clicks button run the game
-	$(document).on('click','button',function() {
+	$(document).on('click','.flip',function() {
 
 		// evertime userclicks, make a new random
 		// get user choice 
@@ -164,15 +219,171 @@
 		flipCoin();
 	});
 
+// ---------------------Login Info----------------------------------------
+
+	$('.userId').hide();
+	$('.userLogin').hide();
 
 
 
+	$('#register').on('click', function() {
+
+		$('#register').hide();
+		$('#signIn').hide();
+		$('.userId').show();
+
+	});
+
+	// user creates an account if they click 'Register' button
+	// if the userName or email has already been take (checked by looping through the users object stored in firebase) the we 
+	// tell the user the email or userName has already been taken.
+
+	$('#submit').on('click', function() {
+
+		event.preventDefault();	
+		
+		var userName = '';
+		var	email	 = '';
+		var password = '';
+
+		var errorUserName = 'User Name has already been take. Please choose another user name.';
+
+		var errorEmail 	  = 'Email is already in use, please use another email address';
+		
+		var userNameAndEmailError = 'Both Username and Email are currently in use. Please try again :]';
+
+		$('#message-display').text('');
+
+		userName 	 = $('#userName').val().toLowerCase().trim();
+		email	 	 = $('#email').val().toLowerCase().trim();
+		password 	 = $('#password').val().toLowerCase().trim();
+
+		if ((userName == '') || (email == '') || (password == '')){
+
+			$('#message-display').append('Finish The Form *****');
+			return;
+
+		}
+
+		for (var key in users) {
+
+			if((userName === users[key].user_Name) && (email === users[key].user_Email)){
+
+				$('#message-display').append(userNameAndEmailError);
+				return;
+
+			} else if (email === users[key].user_Email) {
+
+				$('#message-display').append(errorEmail);
+				return;
+
+ 			} else if (userName === users[key].user_Name) {
+
+ 				$('#message-display').append(errorUserName);
+ 				return;
+ 			}
+
+ 		}
+
+		var userInfo     = {
+
+			user_Name: userName,
+			user_Email: email,
+			user_Password: password,
+			status: 'Logged In',
+			wallet: 100
+
+		}		
+
+		database.ref('/users').push(
+			userInfo
+      	);
+
+		loggedInUser = userName;
+
+		
+
+      	$('#userName').val('');
+      	$('#email').val('');
+      	$('#password').val('');
+
+      	// Display page wanted here after user created an account
+      	$('.login-page').hide();
+      	$('.coin-flip').show();
+
+      	$('#currentUser').text(loggedInUser);
+
+	});
+
+	$('#signIn').on('click', function() {
+
+		$('#register').hide();
+		$('#signIn').hide(); 
+		$('.userLogin').show();
+	
+	});
 
 
+	// when user clicks submit, this code will check to see if 
+	// it's in the database and if the user name and password matches the information in the database.
+	// if it does, it allows the user to see the page.
+	// if it doesn't then user cannot log in.
 
+	$('#submitLogin').on('click', function() {
 
+		event.preventDefault();	
 
+		var userName = '';
+		var password = '';
+		userName 	 = $('#loginUserName').val().toLowerCase().trim();
+		password 	 = $('#loginPassword').val().toLowerCase().trim();
 
+		var errorMsg = 'Wrong user Name or Password';
+
+		$('#message-display').text('');
+
+		if ((userName == '') || (password == '')){
+
+			$('#message-display').append('Finish The Form *****');
+			return;
+
+		}
+		
+		$('#message-display').text('');
+
+		for(var keys in users) {
+
+			if ((userName === users[keys].user_Name) && (password === users[keys].user_Password)) {
+
+				alert("You are now logged in!");
+				
+				// show page once login here
+				
+				// Show user name and wallet of user
+				loggedInUser 	   = userName;
+				loggedInUserWallet = 	users[keys].wallet;
+
+				$('.login-page').hide();
+      			$('.coin-flip').show();
+
+      			$('#currentUser').text(loggedInUser);
+      			$('#currentWallet').text(loggedInUserWallet);
+				
+				return;
+
+			} 
+		}
+
+		$('#message-display').append(errorMsg);
+
+	});
+	
+	// this back button brings the user to the option menu
+	// where they can chose to register or log in.
+	$('#back').on('click', function() {
+		$('.form-pages').hide();
+		$('.beginning-page').show();
+	}); 
 
 
 	// This function also runs on a 5 second timer.
