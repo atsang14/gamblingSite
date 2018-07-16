@@ -66,10 +66,8 @@
 		
 		<!-- Past History Location -->
 	<div id="pastResults"></div>
-
 	
 </div>
-
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/5.2.0/firebase.js"></script>
@@ -154,9 +152,9 @@
 		
 		$('#pastResults').text('');
 		
-		for (var i = 0; i < pastResultsArray.length; i++) {
-			var p = $('<p>').text(pastResultsArray[i]);
-			$('#pastResults').append(p);
+		for (var i = 0; i < 10; i++) {
+			var p = $('<p>').text(pastResultsArray[pastResultsArray.length - i]);
+			$('#pastResults').prepend(p);
 		}
 
 		$('.images').attr('src', snapshot.val().imgUrl);
@@ -168,16 +166,19 @@
 	// on the randomization.
 
 	function flipCoin() {
-
+	
 		var random = Math.floor(Math.random() * 2);
-
+		$('#pastResults').text('');
+	
 		if (random == 0) {
 			
 			$('.images').attr('src', 'http://random-ize.com/coin-flip/us-quarter/us-quarter-front.jpg');
-			$('#pastResults').append('Heads');
-			
+
 			pastResultsArray.push('Heads');
-			clearDiv++;
+
+			for (var i = 0; i < 10; i++ ){
+				$('#pastResults').append(pastResultsArray[pastResultsArray.length-i]);
+			}
 			
 			database.ref("/pastResultsCounter").set({
         		resultContainer: clearDiv,
@@ -188,9 +189,12 @@
 		} else if (random == 1) {
 			
 			$('.images').attr('src', 'http://random-ize.com/coin-flip/us-quarter/us-quarter-back.jpg');
-			$('#pastResults').append('Tails');
+			
 			pastResultsArray.push('Tails');
-			clearDiv++;
+
+			for (var i = 0; i < 10; i++ ){
+				$('#pastResults').append(pastResultsArray[pastResultsArray.length-i]);
+			}
 
 			database.ref("/pastResultsCounter").set({
         		resultContainer: clearDiv,
@@ -203,20 +207,8 @@
 			// when user clicks button run the game
 	$(document).on('click','.flip',function() {
 
-		// evertime userclicks, make a new random
-		// get user choice 
-		var random = Math.floor(Math.random() * 2);
-
-		// clearDiv is used to clear pastResults div when it get's too full
-		if(clearDiv > 10) {
-
-			$('#pastResults').text('');
-			clearDiv = 0;
-			pastResultsArray = [];
-
-		}
-
 		flipCoin();
+		
 	});
 
 // ---------------------Login Info----------------------------------------
@@ -300,8 +292,6 @@
       	);
 
 		loggedInUser = userName;
-
-		
 
       	$('#userName').val('');
       	$('#email').val('');
