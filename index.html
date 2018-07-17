@@ -69,6 +69,16 @@
 		
 		<!-- Past History Location -->
 	<div id="pastResults"></div>
+
+		<!-- Chat Box -->
+	<div class="chat">
+		<form>
+	  		<input id="userInput">
+	  		<button id="send">send</button>
+		</form>
+
+		<div class="theChatBox"></div>
+	</div>
 	
 </div>
 
@@ -124,7 +134,10 @@
       $("#online").text(snap.numChildren());
     });
 
-// -----------------------Flip Coin--------------------------------------
+// -----------------------------------------------------------------------
+// -----------------------Flip Coin---------------------------------------
+// -----------------------------------------------------------------------
+	
 	var baseTime 		   = "1531389600"; // subtract this by the Date.now() and the % to get remainder.
 	var clearDiv 		   = 0;
 	var pastResultsArray   = [];
@@ -172,7 +185,6 @@
 		flipCoin();
 
 	});
-
 
 	// this function flips coin and randomizes which will be displayed depending 
 	// on the randomization.
@@ -237,10 +249,12 @@
 		$('.login-page').show();
 		$('.coin-flip').hide();
 
-	})
+	});
 
+// -----------------------------------------------------------------------
 // ---------------------Login Info----------------------------------------
-
+// -----------------------------------------------------------------------
+	
 	$('.userId').hide();
 	$('.userLogin').hide();
 
@@ -407,6 +421,108 @@
 		$('.beginning-page').show();
 
 	}); 
+
+
+// -----------------------------------------------------------------------
+// -----------------------ChatBox-----------------------------------------
+// -----------------------------------------------------------------------
+	database.ref().on("value", function(snapshot) {
+
+	    $('.theChatBox').text('');
+        var chatBoxStart   = [];
+        chatBoxStart       =   snapshot.val().chatBox;
+
+        var counter     = 0;
+        var displayChat = [];
+
+        for(var theKey in chatBoxStart) {
+        	counter ++;
+      	}
+
+      	var weWant      = counter - 2;
+      	var newCounter  = 0;
+
+        for(var theKeys in chatBoxStart) {
+        	newCounter++;
+        	if(newCounter == weWant) {
+          		displayChat.push(chatBoxStart[theKeys]);
+          		weWant++;
+          		if(weWant > counter){
+            		break;
+          		}
+        	}
+      	}
+
+      	for (var i = 0; i < 3; i++) {
+        	var pTag    = $('<p>').append(':'+displayChat[i].chatText);
+        	$('.theChatBox').append(pTag);
+      	}
+	  	
+	});
+
+	// when user clicks send, updates the page for everybody tuned in
+    $('#send').on('click', function() {
+    
+	    event.preventDefault(); 
+
+	    var timeStamp   = new Date().toISOString();
+	    var chatText    = '';
+
+	    chatText        = $('#userInput').val();
+	    
+	    if(chatText != '') {
+	    
+	      	var chatObject  = {
+		        
+		        timeStamp: timeStamp,
+		        chatText: chatText,
+		        userNameSent: loggedInUser
+
+	      	}
+	      
+	      	// hell is happening between line 93 - 95
+	     	database.ref('/chatBox').push(
+	        	chatObject
+	      	); 
+
+      	$('#userInput').val('');
+
+    	}
+ 	});
+	
+
+	
+	
+
+	
+	
+
+	
+	
+
+	
+	
+
+	
+	
+
+	
+	
+
+	
+	
+
+	
+	
+
+	
+	
+
+	
+	
+
+	
+	
 
 	
 	
