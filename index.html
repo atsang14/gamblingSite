@@ -50,7 +50,8 @@
 	<div id="pickButton">
 		<button class="flip">FlipCoin!</button>
 	</div>
-	
+
+		<!-- log out button here -->
 	<button class="logOut">Log Out</button>
 
 		<!-- coin flip  -->
@@ -63,7 +64,29 @@
 		<!-- Shows Who user is currently logged in as -->
 	<div class="loggedInAs">Logged In As: <span id="currentUser"></span></div>
 	
-	<div class="wallet">Wallet: <span id="currentWallet"></span></div>	
+		<!-- This div holds the users choice and amount -->
+	<div>
+		<p>Heads</p>
+		<div class="headsPlayers"></div>
+
+		<p>Tails</p>
+		<div class="tailsPlayers"></div>
+	</div>	
+
+
+		<!-- place bets here -->
+	<div class="bets">
+		<p>Pot <span id='pot'></span></p>
+		<button id="heads">heads</button>
+		<button id="tails">tails</button>
+		<h3 id="bet">Place BetsHere: </h3>
+		<input id="placeBet">
+		<button id="submitBet">Enter</button>
+	</div>
+
+		<!-- wallet current users wallet -->
+	<div class="wallet">Wallet: <span id="currentWallet"></span></div>
+
 		<!-- how many users online -->
 	<p>Online: <span id="online"></span></p>
 		
@@ -145,6 +168,10 @@
 	var users 			   = [];
 	var loggedInUser	   = ''; // this variable holds the userName of the Currently logged in user.
 	var loggedInUserWallet = 0;
+	var pot 			   = 0;  // STORE THE POT IN THE RESULTSCOUNTER IN pastResultArray object. called pot
+
+
+
 	// var timerStart		 = 5;	// this variable will dictate how long the timer will last 
 	// var flipTimer;
 
@@ -178,7 +205,6 @@
 
 	});
 
-
 	// when user clicks button run the game
 	$(document).on('click','.flip',function() {
 
@@ -190,6 +216,7 @@
 	// on the randomization.
 	function flipCoin() {
 
+		// here i need to grab the users who picked heads and tails. And then after flip coin, clear those arrays.
 		var timeStamp 	= new Date().toISOString();
 		var random 		= Math.floor(Math.random() * 2);
 		
@@ -206,7 +233,8 @@
 
 			pastResultsArray.push(result);
 			
-			for (var i = 0; i < 10; i++ ){
+			for (var i = 0; i < 10; i++ ) {
+
 				var span = $('<span>').text(timeStamp);
 				var p = $('<p>').append(pastResultsArray[pastResultsArray.length - (i+1)].timeResult);
 				p.append('\t').append(span);
@@ -269,7 +297,6 @@
 	// user creates an account if they click 'Register' button
 	// if the userName or email has already been take (checked by looping through the users object stored in firebase) the we 
 	// tell the user the email or userName has already been taken.
-
 
 	$('#submit').on('click', function() {
 
@@ -394,8 +421,8 @@
 				
 				// Show user name and wallet of user
 				loggedInUser 	   = userName;
-				loggedInUserWallet = 	users[keys].wallet;
-				
+				loggedInUserWallet = users[keys].wallet;
+
 				$('#loginUserName').val('');
 				$('#loginPassword').val('');
 				
@@ -425,9 +452,9 @@
 	}); 
 
 
-// -----------------------------------------------------------------------
-// -----------------------ChatBox-----------------------------------------
-// -----------------------------------------------------------------------
+//-----------------------------------------------------------------------
+//-----------------------ChatBox-----------------------------------------
+//-----------------------------------------------------------------------
 
 	// updates the chatBox in database when user sends a message.
 	// also adds an array of objects in the users object that 
@@ -498,20 +525,22 @@
 
 	      	var chatArrayObject  = [];
 	      	database.ref().on("value", function(snapshot) {
-				// loggedInUser
+
 				var objectChatObject = [];
 				var chat 			 = snapshot.val().chatBox;
 				var users 			 = snapshot.val().users;
-				// var chatArrayObject  = [];
+		
 				
 				for(var keyObject in chat) {
 					objectChatObject.push(chat[keyObject]);
 				}
 				
 				for(var x = 0; x < objectChatObject.length; x++) {
+					
 					var text = objectChatObject[x].chatText;
 					var time = objectChatObject[x].timeStamp;
 					var name = objectChatObject[x].userNameSent;
+					
 					if(name == loggedInUser){
 						
 						var object = {
@@ -535,10 +564,223 @@
 	      	}
 	      	database.ref('/users/'+key+'/chatHistory').set(
 				chatArrayObject
-			)
-
+			);
     	}
  	});
+
+//-----------------------------------------------------------------------
+//-------------------------PlaceBets-------------------------------------
+//-----------------------------------------------------------------------
+
+	// <div>
+	//  <p>Pot <span id='pot' ></span></p>
+	// 	<p>Heads</p>
+	// 	<div class="headsPlayers"></div>
+
+	// 	<p>Tails</p>
+	// 	<div class="tailsPlayers"></div>
+	// </div>	
+
+
+	// <div class="bets">
+	// 	<button id="heads">heads</button>
+	// 	<button id="tails">tails</button>
+	// 	<h3 id="bet">Place BetsHere: </h3>
+	// 	<input id="placeBet">
+	// 	<button id="submitBet">Enter</button> /// dont need this line
+	// </div>
+
+	var heads = [];
+	var tails = [];
+	var betInfo = {};
+
+	$('#heads').on('click', function() {
+
+		var timeStamp = new Date().toISOString();; 
+		var userBets  = parseInt($('#placeBet').val());
+
+		if (userBets != '') {
+
+			loggedInUserWallet -= userBets;
+			pot 			   += userBets;
+
+			// var span 			= $('<span>').text(': ' + userBets);
+			// var p 				= $('<p>').append(loggedInUser).append(span);
+
+			// $('.headsPlayers').append(p);
+			$('#currentWallet').text(loggedInUserWallet);
+
+			// betinfo object will be used to update the pastResultsArray
+			betInfo = {
+				
+				user: loggedInUser,
+				userWalletAfterBet: loggedInUserWallet,
+				amountBet: userBets,
+				timeStamp: timeStamp,
+				choice: 'heads'
+
+			}
+
+			// push user info in to heads array, will do the same for tails
+			heads.push(betInfo);
+			
+			var key = '';
+			for(var anotherKey in users) {
+				if(users[anotherKey].user_Name == loggedInUser) {
+					key = anotherKey;
+				}
+			}
+
+			// update userslogged in wallet
+			database.ref('/users/'+key+'/wallet').set(
+				loggedInUserWallet	
+			);
+
+			// update currentPot object after each bet
+			database.ref('/currentPot').set({
+				pot: pot,
+				heads,
+				tails
+			});
+
+			$('#placeBet').val('');
+			$('#pot').text(': ' + pot);
+
+		} else {
+			alert('Place a bet please');
+		}
+	});
+
+	$('#tails').on('click', function() {
+
+		var timeStamp = new Date().toISOString();; 
+		var userBets  = parseInt($('#placeBet').val());
+			
+		if (userBets != '') {
+			
+			// THIS IS FOR IF THE USER LOSES ONLY. MAKE ONE FOR IF THE USER WINS
+			// AND THEN ALSO MAKE IT TO CHECK WHETHER OR NOT THE USER HAS WON
+			loggedInUserWallet -= userBets;
+			pot 			   += userBets;
+
+			var span 			= $('<span>').text(': ' + userBets);
+			var p 				= $('<p>').append(loggedInUser).append(span);
+
+			$('.tailsPlayers').append(p);
+			$('#currentWallet').text(loggedInUserWallet);
+
+			var key = '';
+			for(var anotherKey in users) {
+				if(users[anotherKey].user_Name == loggedInUser) {
+					key = anotherKey;
+				}
+			}
+
+			// betinfo object will be used to update the pastResultsArray
+			betInfo = {
+				
+				user: loggedInUser,
+				userWalletAfterBet: loggedInUserWallet,
+				timeStamp: timeStamp,
+				amountBet: userBets,
+				choice: 'tails'
+
+			}
+			// push user info in to heads array, will do the same for tails
+			tails.push(betInfo);
+
+
+			// update userslogged in wallet
+			database.ref('/users/'+key+'/wallet').set(
+				loggedInUserWallet
+			);
+
+			// update currentPot object after each bet
+			database.ref('/currentPot').set({
+				pot: pot,
+				heads,
+				tails
+			});
+
+			$('#placeBet').val('');
+			$('#pot').text(': ' + pot);
+
+		} else {
+			alert('Place a bet please');
+		}
+	});
+
+	// this will go into heads on.('click') and update heads and pot
+	// on click by grabbing info from currentPot to make realtime
+	database.ref().on("value", function(snapshot) {
+		
+		var currentHeads = snapshot.val().currentPot.heads;
+		var currentPot	 = snapshot.val().currentPot.pot;
+		$('#pot').text(': ' + currentPot);
+		
+		// if this doesn't work may be because we're using var 'i' and 'i'
+		// is already being used elsewhere.
+		for(var i = 0; i < currentHeads.length; i++ ){
+			
+			var userName   = currentHeads[i].user;
+			var userAmount = currentHeads[i].amountBet;
+			var span	   = $('<span>').text(userAmount);
+			var p 		   = $('<p>').text(userName+': '+userAmount);
+			$('#headsPlayers').append(p);
+
+		}
+	});
+
+	// database.ref('/currentPot').on('value', function(snapshot) {
+	// 	pot: pot,
+	// 	tails: tails,
+	// 	heads: heads
+	// });
+
+
+
+// loggedInUserWallet
+
+
+
+
+	
+
+	
+
+
+
+
+
+
+
+
+	
+
+	
+
+
+
+
+
+
+
+
+	
+
+	
+
+
+
+
+
+
+
+
+	
+
+
+
 	
 	// This function also runs on a 5 second timer.
 	// Every 5 seconds, the function will call itself to make the game repeat.
@@ -571,9 +813,6 @@
 	// 		}
 	// 	}, 1000);
 	// }
-
-
-
 		
 		// $('#guessHere').text($(this).attr('class'));
 
