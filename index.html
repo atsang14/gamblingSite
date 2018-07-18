@@ -25,7 +25,7 @@
 				<button id="submit">Submit</button>
 				<button id="back">Back</button>
 			</form>
-		</div>
+		</div> 
 
 			<!-- Login if user does have an account -->
 		<div class="userLogin">
@@ -252,9 +252,9 @@
 	});
 
 // -----------------------------------------------------------------------
-// ---------------------Login Info----------------------------------------
+// ---------------------LoginInfo----------------------------------------
 // -----------------------------------------------------------------------
-	
+
 	$('.userId').hide();
 	$('.userLogin').hide();
 
@@ -270,10 +270,11 @@
 	// if the userName or email has already been take (checked by looping through the users object stored in firebase) the we 
 	// tell the user the email or userName has already been taken.
 
+
 	$('#submit').on('click', function() {
 
 		event.preventDefault();	
-		
+
 		var userName = '';
 		var	email	 = '';
 		var password = '';
@@ -324,7 +325,8 @@
 			user_Password: password,
 			status: 'Logged In',
 			wallet: 100,
-			time_Account_Created: timeStamp
+			time_Account_Created: timeStamp,
+			chat: []
 
 		}		
 
@@ -426,15 +428,19 @@
 // -----------------------------------------------------------------------
 // -----------------------ChatBox-----------------------------------------
 // -----------------------------------------------------------------------
+
+	// updates the chatBox in database when user sends a message.
+	// also adds an array of objects in the users object that 
+	// shows the date and time of when the user sent the message.
+
 	database.ref().on("value", function(snapshot) {
 
 	    $('.theChatBox').text('');
-        var chatBoxStart   = [];
-        chatBoxStart       =   snapshot.val().chatBox;
-
-        var counter     = 0;
-        var displayChat = [];
-
+        var chatBoxStart         = [];
+        chatBoxStart       		 = snapshot.val().chatBox;
+        var counter     		 = 0;
+        var displayChat 		 = [];
+        
         for(var theKey in chatBoxStart) {
         	counter ++;
       	}
@@ -454,7 +460,7 @@
       	}
 
       	for (var i = 0; i < 3; i++) {
-        	var pTag    = $('<p>').append(':'+displayChat[i].chatText);
+        	var pTag    = $('<p>').append(displayChat[i].userNameSent+': '+displayChat[i].chatText);
         	$('.theChatBox').append(pTag);
       	}
 	  	
@@ -464,10 +470,10 @@
     $('#send').on('click', function() {
     
 	    event.preventDefault(); 
-
+	    
 	    var timeStamp   = new Date().toISOString();
 	    var chatText    = '';
-
+	    var chatArrayObject  = [];
 	    chatText        = $('#userInput').val();
 	    
 	    if(chatText != '') {
@@ -479,52 +485,60 @@
 		        userNameSent: loggedInUser
 
 	      	}
-	      
+	    
 	      	// hell is happening between line 93 - 95
 	     	database.ref('/chatBox').push(
 	        	chatObject
-	      	); 
+	      	);	
+      		$('#userInput').val('');
+ 		
+      		////////////////////////////////////////
+      		// this code here was used to access the /users object
+      		// review this when you need to access /users
 
-      	$('#userInput').val('');
+	      	var chatArrayObject  = [];
+	      	database.ref().on("value", function(snapshot) {
+				// loggedInUser
+				var objectChatObject = [];
+				var chat 			 = snapshot.val().chatBox;
+				var users 			 = snapshot.val().users;
+				// var chatArrayObject  = [];
+				
+				for(var keyObject in chat) {
+					objectChatObject.push(chat[keyObject]);
+				}
+				
+				for(var x = 0; x < objectChatObject.length; x++) {
+					var text = objectChatObject[x].chatText;
+					var time = objectChatObject[x].timeStamp;
+					var name = objectChatObject[x].userNameSent;
+					if(name == loggedInUser){
+						
+						var object = {
+							text:text,
+							time:time,
+							name: name
+						}
+
+						chatArrayObject.push(object);
+		
+					}
+				}
+				
+			});
+	   		
+	      	var key = '';
+	   		for(var aKey in users) {
+	   			if(users[aKey].user_Name == loggedInUser){
+	   				key = aKey
+	   			}
+	      	}
+	      	database.ref('/users/'+key+'/chatHistory').set(
+				chatArrayObject
+			)
 
     	}
  	});
-	
-
-	
-	
-
-	
-	
-
-	
-	
-
-	
-	
-
-	
-	
-
-	
-	
-
-	
-	
-
-	
-	
-
-	
-	
-
-	
-	
-
-	
-	
-
-	
 	
 	// This function also runs on a 5 second timer.
 	// Every 5 seconds, the function will call itself to make the game repeat.
