@@ -177,16 +177,16 @@
 
 	$('.coin-flip').hide();
 
-	// keeps track of the clearDiv by storing the value in Firebase's Database
-	// the purpose of this is to make sure the div doesn't get too big.
-	// so when clearDiv variable goes past 10, we will clear the div.
-	
+	// take a snapshot of the users object in firebase in order to reference
+	// from later on in code	
 	database.ref().on('value', function(snapshot) {
  		
  		users = snapshot.val().users;
 
  	});
 
+ 	// this takes a snapshot of the pastResultArray and then appends it to page.
+ 	// this is used in order to make the game appear real-time.
 	database.ref("/pastResultsCounter").on("value", function(snapshot) {
 
 		pastResultsArray = snapshot.val().pastResultsArray;
@@ -223,12 +223,19 @@
 		$('#pastResults').text('');
 	 	
 		if (random == 0) {
-			
+
 			var result = {
 				timeStamp: timeStamp,
-				timeResult: 'Heads'
+				timeResult: 'Heads',
+				heads,
+				tails,
+				pot
 			}
 			
+			heads = [];
+			tails = [];
+			pot   = 0;
+
 			$('.images').attr('src', 'http://random-ize.com/coin-flip/us-quarter/us-quarter-front.jpg');
 
 			pastResultsArray.push(result);
@@ -236,7 +243,7 @@
 			for (var i = 0; i < 10; i++ ) {
 
 				var span = $('<span>').text(timeStamp);
-				var p = $('<p>').append(pastResultsArray[pastResultsArray.length - (i+1)].timeResult);
+				var p    = $('<p>').append(pastResultsArray[pastResultsArray.length - (i+1)].timeResult);
 				p.append('\t').append(span);
 				$('#pastResults').append(p);
 			
@@ -251,14 +258,21 @@
 			
 			var result = {
 				timeStamp: timeStamp,
-				timeResult: 'Tails'
+				timeResult: 'Tails',
+				heads,
+				tails,
+				pot
 			}
 
+			heads = [];
+			tails = [];
+			pot   = 0;
+			
 			$('.images').attr('src', 'http://random-ize.com/coin-flip/us-quarter/us-quarter-back.jpg');
 			
 			pastResultsArray.push(result);
 
-			for (var i = 0; i < 10; i++ ){
+			for (var i = 0; i < 10; i++ ) {
 				var span = $('<span>').text(timeStamp);
 				var p = $('<p>').append(pastResultsArray[pastResultsArray.length - (i+1)].timeResult);
 				p.append('\t').append(span);
@@ -269,7 +283,17 @@
         		pastResultsArray,
         		imgUrl: 'http://random-ize.com/coin-flip/us-quarter/us-quarter-back.jpg'
      		});
+
+     		database.ref('/currentPot').set({
+				pot: pot,
+				heads,
+				tails
+			});
 		}
+
+		$('.headsPlayers').text('');
+		$('.tailsPlayers').text('');
+		$('#pot').text(': ' + 0);
 	}
 
 	$('.logOut').on('click', function() {
@@ -383,7 +407,6 @@
 	
 	});
 
-
 	// when user clicks submit, this code will check to see if 
 	// it's in the database and if the user name and password matches the information in the database.
 	// if it does, it allows the user to see the page.
@@ -430,14 +453,13 @@
       			$('.coin-flip').show();
 
       			$('#currentUser').text(loggedInUser);
-      			$('#currentWallet').text(loggedInUserWallet);
+      			$('#currentWallet').text('$'+loggedInUserWallet);
 				
 				return;
 
 			} 
 		}
 		
-
 		$('#message-display').append(errorMsg);
 
 	});
@@ -495,7 +517,7 @@
 
 	// when user clicks send, updates the page for everybody tuned in
     $('#send').on('click', function() {
-    
+    	
 	    event.preventDefault(); 
 	    
 	    var timeStamp   = new Date().toISOString();
@@ -522,7 +544,8 @@
       		////////////////////////////////////////
       		// this code here was used to access the /users object
       		// review this when you need to access /users
-
+      		// 542 ~ 583
+      		////////////////////////////////////////
 	      	var chatArrayObject  = [];
 	      	database.ref().on("value", function(snapshot) {
 
@@ -572,24 +595,6 @@
 //-------------------------PlaceBets-------------------------------------
 //-----------------------------------------------------------------------
 
-	// <div>
-	//  <p>Pot <span id='pot' ></span></p>
-	// 	<p>Heads</p>
-	// 	<div class="headsPlayers"></div>
-
-	// 	<p>Tails</p>
-	// 	<div class="tailsPlayers"></div>
-	// </div>	
-
-
-	// <div class="bets">
-	// 	<button id="heads">heads</button>
-	// 	<button id="tails">tails</button>
-	// 	<h3 id="bet">Place BetsHere: </h3>
-	// 	<input id="placeBet">
-	// 	<button id="submitBet">Enter</button> /// dont need this line
-	// </div>
-
 	var heads = [];
 	var tails = [];
 	var betInfo = {};
@@ -604,10 +609,7 @@
 			loggedInUserWallet -= userBets;
 			pot 			   += userBets;
 
-			// var span 			= $('<span>').text(': ' + userBets);
-			// var p 				= $('<p>').append(loggedInUser).append(span);
 
-			// $('.headsPlayers').append(p);
 			$('#currentWallet').text(loggedInUserWallet);
 
 			// betinfo object will be used to update the pastResultsArray
@@ -644,7 +646,6 @@
 			});
 
 			$('#placeBet').val('');
-			$('#pot').text(': ' + pot);
 
 		} else {
 			alert('Place a bet please');
@@ -663,10 +664,6 @@
 			loggedInUserWallet -= userBets;
 			pot 			   += userBets;
 
-			var span 			= $('<span>').text(': ' + userBets);
-			var p 				= $('<p>').append(loggedInUser).append(span);
-
-			$('.tailsPlayers').append(p);
 			$('#currentWallet').text(loggedInUserWallet);
 
 			var key = '';
@@ -703,39 +700,49 @@
 			});
 
 			$('#placeBet').val('');
-			$('#pot').text(': ' + pot);
 
 		} else {
 			alert('Place a bet please');
 		}
 	});
 
-	// this will go into heads on.('click') and update heads and pot
-	// on click by grabbing info from currentPot to make realtime
+	// updates heads and tails div real time.
 	database.ref().on("value", function(snapshot) {
-		
+
+		// this is to clear all existing inside div becaues will be reappended
+		// in for-loop
+		$('.headsPlayers').text('');
+		$('.tailsPlayers').text('');
+
+		// UPDATE FOR HEADS & TAILS
 		var currentHeads = snapshot.val().currentPot.heads;
+		var currentTails = snapshot.val().currentPot.tails;
 		var currentPot	 = snapshot.val().currentPot.pot;
-		$('#pot').text(': ' + currentPot);
+		$('#pot').text(': $' + currentPot);
 		
-		// if this doesn't work may be because we're using var 'i' and 'i'
-		// is already being used elsewhere.
-		for(var i = 0; i < currentHeads.length; i++ ){
+		for(var i = 0; i < currentHeads.length; i++ ) {
 			
 			var userName   = currentHeads[i].user;
 			var userAmount = currentHeads[i].amountBet;
 			var span	   = $('<span>').text(userAmount);
-			var p 		   = $('<p>').text(userName+': '+userAmount);
-			$('#headsPlayers').append(p);
+			var p 		   = $('<p>').text(userName+': $'+userAmount);
+			$('.headsPlayers').append(p);
+		}
 
+		for(var j = 0; j < currentTails.length; j++ ) {
+			
+			var userName   = currentTails[j].user;
+			var userAmount = currentTails[j].amountBet;
+			var span	   = $('<span>').text(userAmount);
+			var p		   = $('<p>').text(userName+': $'+userAmount);
+			$('.tailsPlayers').append(p);
 		}
 	});
 
-	// database.ref('/currentPot').on('value', function(snapshot) {
-	// 	pot: pot,
-	// 	tails: tails,
-	// 	heads: heads
-	// });
+
+
+
+
 
 
 
