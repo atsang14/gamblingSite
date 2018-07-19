@@ -231,7 +231,8 @@
 				tails,
 				pot
 			}
-			
+
+			////////////// check if user wins has to go before here //////////////////////////////
 			heads = [];
 			tails = [];
 			pot   = 0;
@@ -253,7 +254,13 @@
         		pastResultsArray,
         		imgUrl: 'http://random-ize.com/coin-flip/us-quarter/us-quarter-front.jpg'
      		});
-		
+			
+			database.ref('/currentPot').set({
+				pot: pot,
+				heads,
+				tails
+			});
+
 		} else if (random == 1) {
 			
 			var result = {
@@ -264,7 +271,8 @@
 				pot
 			}
 
-			heads = [];
+			////////////// check if user wins has to go before here //////////////////////////////
+ 			heads = [];
 			tails = [];
 			pot   = 0;
 			
