@@ -223,6 +223,29 @@
 		$('#pastResults').text('');
 	 	
 		if (random == 0) {
+			
+			for(var j = 0; j < heads.length; j++) {
+
+				var amountBet  				  = parseInt(heads[j].amountBet);
+				heads[j].won   				  = amountBet * 2;
+				heads[j].userWalletAfterFlip  = heads[j].userWalletAfterBet + heads[j].won;
+				if(heads[j].user == loggedInUser) {
+					loggedInUserWallet = heads[j].userWalletAfterFlip;
+				}
+			}
+			
+			// grab correct key for the loggedInUser
+			var key = '';
+			for(var anotherKey in users) {
+				if(users[anotherKey].user_Name == loggedInUser) {
+					key = anotherKey;
+				}
+			}
+
+			// update userslogged in wallet
+			database.ref('/users/'+key+'/wallet').set(
+				loggedInUserWallet	
+			);
 
 			var result = {
 				timeStamp: timeStamp,
@@ -232,10 +255,6 @@
 				pot
 			}
 
-			////////////// check if user wins has to go before here //////////////////////////////
-			heads = [];
-			tails = [];
-			pot   = 0;
 
 			$('.images').attr('src', 'http://random-ize.com/coin-flip/us-quarter/us-quarter-front.jpg');
 
@@ -246,8 +265,7 @@
 				var span = $('<span>').text(timeStamp);
 				var p    = $('<p>').append(pastResultsArray[pastResultsArray.length - (i+1)].timeResult);
 				p.append('\t').append(span);
-				$('#pastResults').append(p);
-			
+				$('#pastResults').append(p);			
 			}
 			
 			database.ref("/pastResultsCounter").set({
@@ -255,6 +273,10 @@
         		imgUrl: 'http://random-ize.com/coin-flip/us-quarter/us-quarter-front.jpg'
      		});
 			
+			heads = [];
+			tails = [];
+			pot   = 0;
+
 			database.ref('/currentPot').set({
 				pot: pot,
 				heads,
@@ -263,6 +285,29 @@
 
 		} else if (random == 1) {
 			
+ 			for(var j = 0; j < heads.length; j++) {
+				
+				var amountBet  				  = parseInt(tails[j].amountBet);
+				tails[j].won   				  = amountBet * 2;
+				tails[j].userWalletAfterFlip  = tails[j].userWalletAfterBet + tails[j].won;
+				if(tails[j].user == loggedInUser) {
+					loggedInUserWallet = tails[j].userWalletAfterFlip;
+				}
+			}
+
+			// grab correct key for the loggedInUser
+			var key = '';
+			for(var anotherKey in users) {
+				if(users[anotherKey].user_Name == loggedInUser) {
+					key = anotherKey;
+				}
+			}
+
+			// update userslogged in wallet
+			database.ref('/users/'+key+'/wallet').set(
+				loggedInUserWallet	
+			);
+
 			var result = {
 				timeStamp: timeStamp,
 				timeResult: 'Tails',
@@ -270,11 +315,6 @@
 				tails,
 				pot
 			}
-
-			////////////// check if user wins has to go before here //////////////////////////////
- 			heads = [];
-			tails = [];
-			pot   = 0;
 			
 			$('.images').attr('src', 'http://random-ize.com/coin-flip/us-quarter/us-quarter-back.jpg');
 			
@@ -292,6 +332,10 @@
         		imgUrl: 'http://random-ize.com/coin-flip/us-quarter/us-quarter-back.jpg'
      		});
 
+			heads = [];
+			tails = [];
+			pot   = 0;
+
      		database.ref('/currentPot').set({
 				pot: pot,
 				heads,
@@ -299,9 +343,9 @@
 			});
 		}
 
-		$('.headsPlayers').text('');
-		$('.tailsPlayers').text('');
-		$('#pot').text(': ' + 0);
+		// $('.headsPlayers').text('');
+		// $('.tailsPlayers').text('');
+		// $('#pot').text(': ' + 0);
 	}
 
 	$('.logOut').on('click', function() {
@@ -610,13 +654,12 @@
 	$('#heads').on('click', function() {
 
 		var timeStamp = new Date().toISOString();; 
-		var userBets  = parseInt($('#placeBet').val());
+		var userBets  = $('#placeBet').val();
 
 		if (userBets != '') {
 
-			loggedInUserWallet -= userBets;
-			pot 			   += userBets;
-
+			loggedInUserWallet -= parseInt(userBets);
+			pot 			   += parseInt(userBets);
 
 			$('#currentWallet').text(loggedInUserWallet);
 
@@ -663,23 +706,16 @@
 	$('#tails').on('click', function() {
 
 		var timeStamp = new Date().toISOString();; 
-		var userBets  = parseInt($('#placeBet').val());
+		var userBets  = $('#placeBet').val();
 			
 		if (userBets != '') {
 			
 			// THIS IS FOR IF THE USER LOSES ONLY. MAKE ONE FOR IF THE USER WINS
 			// AND THEN ALSO MAKE IT TO CHECK WHETHER OR NOT THE USER HAS WON
-			loggedInUserWallet -= userBets;
-			pot 			   += userBets;
+			loggedInUserWallet -= parseInt(userBets);
+			pot 			   += parseInt(userBets);
 
 			$('#currentWallet').text(loggedInUserWallet);
-
-			var key = '';
-			for(var anotherKey in users) {
-				if(users[anotherKey].user_Name == loggedInUser) {
-					key = anotherKey;
-				}
-			}
 
 			// betinfo object will be used to update the pastResultsArray
 			betInfo = {
@@ -691,9 +727,16 @@
 				choice: 'tails'
 
 			}
+
 			// push user info in to heads array, will do the same for tails
 			tails.push(betInfo);
 
+			var key = '';
+			for(var anotherKey in users) {
+				if(users[anotherKey].user_Name == loggedInUser) {
+					key = anotherKey;
+				}
+			}
 
 			// update userslogged in wallet
 			database.ref('/users/'+key+'/wallet').set(
@@ -728,21 +771,22 @@
 		var currentPot	 = snapshot.val().currentPot.pot;
 		$('#pot').text(': $' + currentPot);
 		
+		// the error is that these for loops must also update the local heads and tails arrays
 		for(var i = 0; i < currentHeads.length; i++ ) {
-			
+			heads[i]	   = currentHeads[i];
 			var userName   = currentHeads[i].user;
 			var userAmount = currentHeads[i].amountBet;
 			var span	   = $('<span>').text(userAmount);
-			var p 		   = $('<p>').text(userName+': $'+userAmount);
+			var p 		   = $('<p>').text(userName+': $').append(span);
 			$('.headsPlayers').append(p);
 		}
 
 		for(var j = 0; j < currentTails.length; j++ ) {
-			
+			tails[j]	   = currentTails[j];
 			var userName   = currentTails[j].user;
 			var userAmount = currentTails[j].amountBet;
 			var span	   = $('<span>').text(userAmount);
-			var p		   = $('<p>').text(userName+': $'+userAmount);
+			var p		   = $('<p>').text(userName+': $').append(span);
 			$('.tailsPlayers').append(p);
 		}
 	});
