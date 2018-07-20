@@ -233,19 +233,19 @@
 					loggedInUserWallet = heads[j].userWalletAfterFlip;
 				}
 			}
-			
-			// grab correct key for the loggedInUser
-			var key = '';
-			for(var anotherKey in users) {
-				if(users[anotherKey].user_Name == loggedInUser) {
-					key = anotherKey;
-				}
-			}
 
-			// update userslogged in wallet
-			database.ref('/users/'+key+'/wallet').set(
-				loggedInUserWallet	
-			);
+			// grab correct key for the loggedInUser
+			// var key = '';
+			// for(var headsKey in users) {
+			// 	if(users[headsKey].user_Name == loggedInUser) {
+			// 		key = headsKey;
+			// 	}
+			// }
+
+			// // update userslogged in wallet
+			// database.ref('/users/'+key+'/wallet').set(
+			// 	loggedInUserWallet	
+			// );
 
 			var result = {
 				timeStamp: timeStamp,
@@ -296,17 +296,17 @@
 			}
 
 			// grab correct key for the loggedInUser
-			var key = '';
-			for(var anotherKey in users) {
-				if(users[anotherKey].user_Name == loggedInUser) {
-					key = anotherKey;
-				}
-			}
+			// var key = '';
+			// for(var tailsKey in users) {
+			// 	if(users[tailsKey].user_Name == loggedInUser) {
+			// 		key = tailsKey;
+			// 	}
+			// }
 
-			// update userslogged in wallet
-			database.ref('/users/'+key+'/wallet').set(
-				loggedInUserWallet	
-			);
+			// // update userslogged in wallet
+			// database.ref('/users/'+key+'/wallet').set(
+			// 	loggedInUserWallet	
+			// );
 
 			var result = {
 				timeStamp: timeStamp,
@@ -355,9 +355,9 @@
 
 	});
 
-// -----------------------------------------------------------------------
+// ----------------------------------------------------------------------
 // ---------------------LoginInfo----------------------------------------
-// -----------------------------------------------------------------------
+// ----------------------------------------------------------------------
 
 	$('.userId').hide();
 	$('.userLogin').hide();
