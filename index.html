@@ -166,8 +166,8 @@
 	var loggedInUser	   = ''; // this variable holds the userName of the Currently logged in user.
 	var loggedInUserWallet = 0;
 	var pot 			   = 0;  // STORE THE POT IN THE RESULTSCOUNTER IN pastResultArray object. called pot
-	var random 		       = 0;
-
+	var heads = [];
+	var tails = [];
 
 	// var timerStart		 = 5;	// this variable will dictate how long the timer will last 
 	// var flipTimer;
@@ -200,6 +200,9 @@
 
 		$('.images').attr('src', snapshot.val().imgUrl);
 
+		heads = [];
+		tails = [];
+
 	});
 
 	// when user clicks button run the game
@@ -215,7 +218,7 @@
 
 		// here i need to grab the users who picked heads and tails. And then after flip coin, clear those arrays.
 		var timeStamp 	= new Date().toISOString();
-		random 		    = Math.floor(Math.random() * 2);
+		var random 		= Math.floor(Math.random() * 2);
 		
 		$('#pastResults').text('');
 	 	
@@ -266,7 +269,7 @@
 
 		} else if (random == 1) {
 			
- 			for(var j = 0; j < heads.length; j++) {
+ 			for(var j = 0; j < tails.length; j++) {
 				
 				var amountBet  				  = parseInt(tails[j].amountBet);
 				tails[j].won   				  = amountBet * 2;
@@ -299,6 +302,7 @@
         		pastResultsArray,
         		imgUrl: 'http://random-ize.com/coin-flip/us-quarter/us-quarter-back.jpg'
      		});
+
 
 			heads = [];
 			tails = [];
@@ -615,8 +619,8 @@
 //-------------------------PlaceBets-------------------------------------
 //-----------------------------------------------------------------------
 
-	var heads = [];
-	var tails = [];
+	// var heads = [];
+	// var tails = [];
 	var betInfo = {};
 
 	$('#heads').on('click', function() {
@@ -652,17 +656,16 @@
 				}
 			}
 
+			// update currentPot object after each bet
+			database.ref('/currentPot').set({
+				heads,
+				tails
+			});
+
 			// update userslogged in wallet
 			database.ref('/users/'+key+'/wallet').set(
 				loggedInUserWallet	
 			);
-
-			// update currentPot object after each bet
-			database.ref('/currentPot').set({
-				pot: pot,
-				heads,
-				tails
-			});
 
 			$('#placeBet').val('');
 
@@ -706,17 +709,18 @@
 				}
 			}
 
+			// update currentPot object after each bet
+			database.ref('/currentPot').set({
+				heads,
+				tails
+			});
+
 			// update userslogged in wallet
 			database.ref('/users/'+key+'/wallet').set(
 				loggedInUserWallet
 			);
 
-			// update currentPot object after each bet
-			database.ref('/currentPot').set({
-				pot: pot,
-				heads,
-				tails
-			});
+
 
 			$('#placeBet').val('');
 
@@ -734,43 +738,89 @@
 		$('.tailsPlayers').text('');
 
 		// UPDATE FOR HEADS & TAILS
-		var currentHeads = snapshot.val().currentPot.heads;
-		var currentTails = snapshot.val().currentPot.tails;
+		// console.log(snapshot.val());
+		// console.log(snapshot.val().currentPot);
+		// console.log(snapshot.val().currentPot.heads);
 		
-		// the error is that these for loops must also update the local heads and tails arrays
-		for(var i = 0; i < currentHeads.length; i++ ) {
-			heads[i]	   = currentHeads[i];
-			var userName   = currentHeads[i].user;
-			var userAmount = currentHeads[i].amountBet;
-			var span	   = $('<span>').text(userAmount);
-			var p 		   = $('<p>').text(userName+': $').append(span);
-			$('.headsPlayers').append(p);
-		}
 
-		for(var j = 0; j < currentTails.length; j++ ) {
-			tails[j]	   = currentTails[j];
-			var userName   = currentTails[j].user;
-			var userAmount = currentTails[j].amountBet;
-			var span	   = $('<span>').text(userAmount);
-			var p		   = $('<p>').text(userName+': $').append(span);
-			$('.tailsPlayers').append(p);
-		}
 
-		// grab correct key for the loggedInUser
-		var key = '';
-		for(var tailsKey in users) {
-			if(users[tailsKey].user_Name == loggedInUser) {
-				key = tailsKey;
+		if(snapshot.val().currentPot != null) {
+			var currentHeads = snapshot.val().currentPot.heads;
+			var currentTails = snapshot.val().currentPot.tails;
+
+			// the error is that these for loops must also update the local heads and tails arrays
+			if(currentHeads != null) {
+				for(var i = 0; i < currentHeads.length; i++ ) {
+					heads[i]	   = currentHeads[i];
+					var userName   = currentHeads[i].user;
+					var userAmount = currentHeads[i].amountBet;
+					var span	   = $('<span>').text(userAmount);
+					var p 		   = $('<p>').text(userName+': $').append(span);
+					$('.headsPlayers').append(p);
+				}
+			} else {
+				heads = [];
 			}
+
+			if(currentTails != null) {
+				for(var j = 0; j < currentTails.length; j++ ) {
+					tails[j]	   = currentTails[j];
+					var userName   = currentTails[j].user;
+					var userAmount = currentTails[j].amountBet;
+					var span	   = $('<span>').text(userAmount);
+					var p		   = $('<p>').text(userName+': $').append(span);
+					$('.tailsPlayers').append(p);
+				}
+			} else {
+				tails = [];
+			}
+
+		} else {
+			heads = [];
+			tails = [];
 		}
-
-		// update userslogged in wallet
-		database.ref('/users/'+key+'/wallet').set(
-			loggedInUserWallet	
-		);
-
+		// grab correct key for the loggedInUser
 	});
 
+	// database.ref('/currentPot').on("value", function(snapshot) {
+	// 	var curHeads = snapshot.val().heads
+	// 	var curTails = snapshot.val().tails
+	// 	if(curHeads == null){
+	// 		debugger;
+	// 		heads = [];
+	// 	} 
+
+	// 	if(curTails == null) {
+	// 		debugger;
+	// 		tails = [];
+	// 	}
+
+	// 	if(snpashot.val() == null) {
+	// 		debugger;
+	// 		heads = [];
+	// 		tails = [];
+	// 	}
+
+	// });
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
